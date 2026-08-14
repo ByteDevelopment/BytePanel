@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit Server" if server else "New Server" }} - BytePanel{% endblock %}
+{% block page_title %}{{ "Edit Server" if server else "New Server" }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:760px">
+    <form method="post">
+        <div class="form-grid">
+            <div class="form-row span-2">
+                <label for="template">Startup template</label>
+                <select id="template" name="template" data-templates='{
+                    {%- for key, tpl in templates -%}
+                    "{{ key }}": {{ tpl | tojson }}{% if not loop.last %}, {% endif %}
+                    {%- endfor -%}
+                }'>
+                    {% for key, tpl in templates %}
+                    <option value="{{ key }}" {% if server and server.template == key %}selected{% elif not server and key == 'custom' %}selected{% endif %}>{{ tpl.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="hint" id="template-hint">Choose a predefined run command. <strong>Minecraft</strong> injects your memory limit into <code>-Xmx</code> automatically.</div>
+            </div>
+            <div class="form-row">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" value="{{ server.name if server else '' }}" required>
+            </div>
+            <div class="form-row">
+                <label for="game">Game / Software</label>
+                <input type="text" id="game" name="game" placeholder="e.g. Minecraft, Valheim, Python" value="{{ server.game if server else '' }}">
+            </div>
+            <div class="form-row">
+                <label for="owner_id">Owner (user)</label>
+                <select id="owner_id" name="owner_id" required>
+                    <option value="">-- Select a user --</option>
+                    {% for user in users %}
+                    <option value="{{ user.id }}" {% if server and server.owner_id == user.id %}selected{% endif %}>{{ user.username }}{{ " (admin)" if user.is_admin }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="port">Port</label>
+                <input type="number" id="port" name="port" min="1" max="65535" value="{{ server.port if server else '' }}" required>
+            </div>
+            <div class="form-row span-2">
+                <label for="description">Description</label>
+                <input type="text" id="description" name="description" value="{{ server.description if server else '' }}">
+            </div>
+            <div class="form-row span-2">
+                <label for="start_command">Start command</label>
+                <input type="text" id="start_command" name="start_command" placeholder="e.g. java -Xmx1G -jar server.jar nogui" value="{{ server.start_command if server else '' }}" class="mono">
+                <div class="hint">Runs in the server folder. Env vars available: <code>SERVER_PORT</code>, <code>SERVER_NAME</code>. For the <strong>Minecraft</strong> template the token <code>{{ '{{RAM}}' }}</code> is replaced with the memory limit (MB) when the server starts.</div>
+            </div>
+
+            {% if server %}
+            <div class="form-row span-2">
+                <label for="install_dir">Install directory</label>
+                <input type="text" id="install_dir" name="install_dir" value="{{ server.install_dir }}" class="mono" readonly>
+            </div>
+            {% else %}
+            <div class="form-row">
+                <label for="dir_name">Server folder name</label>
+                <input type="text" id="dir_name" name="dir_name" placeholder="auto-generated from name">
+            </div>
+            <div class="form-row span-2">
+                <label class="checkbox-row" style="margin:0">
+                    <input type="checkbox" id="create_dir" name="create_dir" checked>
+                    Create the directory now
+                </label>
+                <label class="checkbox-row" style="margin:0">
+                    <input type="checkbox" id="create_pyenv" name="create_pyenv">
+                    Python server &mdash; create a virtual environment
+                </label>
+                <div class="hint">Creates a <code>venv</code> folder for hosting Python scripts. Leave the start command empty to default to <code>venv\Scripts\python.exe main.py</code>.</div>
+            </div>
+            {% endif %}
+
+            <div class="form-row span-2">
+                <label class="checkbox-row" style="margin:0">
+                    <input type="checkbox" id="autostart" name="autostart" {% if server and server.autostart %}checked{% endif %}>
+                    Start automatically when the panel launches
+                </label>
+            </div>
+        </div>
+
+        <h4 class="section-title"><i data-lucide="gauge"></i> Resource limits</h4>
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="memory_limit_mb">Memory limit (MB)</label>
+                <input type="number" id="memory_limit_mb" name="memory_limit_mb" min="0" value="{{ server.memory_limit_mb if server else 0 }}">
+                <div class="hint"><code>0</code> = unlimited. The server is force-stopped if it exceeds this for a sustained period.</div>
+            </div>
+            <div class="form-row">
+                <label for="cpu_limit_pct">CPU limit (%)</label>
+                <input type="number" id="cpu_limit_pct" name="cpu_limit_pct" min="0" value="{{ server.cpu_limit_pct if server else 0 }}">
+                <div class="hint"><code>100</code> = one full core. <code>0</code> = unlimited.</div>
+            </div>
+            <div class="form-row">
+                <label for="disk_limit_mb">Storage limit (MB)</label>
+                <input type="number" id="disk_limit_mb" name="disk_limit_mb" min="0" value="{{ server.disk_limit_mb if server else 0 }}">
+                <div class="hint"><code>0</code> = unlimited. Start is blocked when the server folder exceeds this.</div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn" type="submit"><i data-lucide="save"></i> {{ "Save changes" if server else "Create server" }}</button>
+            <a class="btn btn-ghost" href="{{ url_for('admin.servers') }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var select = document.getElementById("template");
+    var cmdInput = document.getElementById("start_command");
+    var gameInput = document.getElementById("game");
+    var hint = document.getElementById("template-hint");
+    if (!select || !cmdInput) return;
+
+    var templates = JSON.parse(select.getAttribute("data-templates") || "{}");
+
+    function hintFor(tpl) {
+        var html = tpl.hint || "";
+        if (tpl.has_ram_placeholder) {
+            html += ' <span class="hint">The <code>{{RAM}}</code> token is replaced with the <strong>Memory limit (MB)</strong> at startup.</span>';
+        }
+        return html;
+    }
+
+    function refreshHint() {
+        var tpl = templates[select.value] || templates["custom"];
+        hint.innerHTML = tpl ? hintFor(tpl) : "";
+    }
+
+    function applyTemplate() {
+        var tpl = templates[select.value] || templates["custom"];
+        if (!tpl) return;
+        if (tpl.command) {
+            cmdInput.value = tpl.command;
+        }
+        if (tpl.game && (!gameInput.value || gameInput.value.toLowerCase() === "custom")) {
+            gameInput.value = tpl.game;
+        }
+        refreshHint();
+    }
+
+    select.addEventListener("change", applyTemplate);
+    refreshHint();
+})();
+</script>
+{% endblock %}

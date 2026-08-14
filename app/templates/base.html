@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}BytePanel{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="{{ url_for('static', filename='js/lucide.min.js') }}" defer></script>
+</head>
+<body>
+<div class="shell">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-logo"><span class="brand-mark">B</span></div>
+            <div class="brand-text">Byte<em>Panel</em></div>
+        </div>
+
+        <div class="nav-sep">General</div>
+        <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
+            <i data-lucide="layout-dashboard"></i><span class="nav-label">Dashboard</span>
+        </a>
+
+        {% if current_user.is_admin %}
+        <div class="nav-sep">Administration</div>
+        <a class="nav-link {% if active_page == 'admin' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
+            <i data-lucide="gauge"></i><span class="nav-label">Overview</span>
+        </a>
+        <a class="nav-link {% if active_page == 'admin-servers' %}active{% endif %}" href="{{ url_for('admin.servers') }}">
+            <i data-lucide="server"></i><span class="nav-label">Servers</span>
+        </a>
+        <a class="nav-link {% if active_page == 'admin-users' %}active{% endif %}" href="{{ url_for('admin.users') }}">
+            <i data-lucide="users"></i><span class="nav-label">Users</span>
+        </a>
+        <a class="nav-link {% if active_page == 'admin-logs' %}active{% endif %}" href="{{ url_for('admin.logs') }}">
+            <i data-lucide="scroll-text"></i><span class="nav-label">Logs</span>
+        </a>
+        {% endif %}
+
+        <div class="sidebar-foot">
+            <i data-lucide="shield" style="width:15px;height:15px"></i>
+            <span>v{{ panel_version }}</span>
+        </div>
+    </aside>
+    <div class="backdrop" id="backdrop"></div>
+
+    <main class="main">
+        <header class="topbar">
+            <button id="menu-toggle" aria-label="Menu"><i data-lucide="menu" style="width:18px;height:18px"></i></button>
+            <div class="topbar-title">{% block page_title %}BytePanel{% endblock %}</div>
+            <div class="topbar-spacer"></div>
+            <div class="user-chip">
+                <span class="avatar">{{ current_user.username[:1] | upper }}</span>
+                <span class="username">{{ current_user.username }}</span>
+                <a class="icon-btn" href="{{ url_for('auth.logout') }}" title="Logout" data-confirm-title="Log out?" data-confirm="Log out of {{ current_user.username }}?" data-confirm-ok="Log out">
+                    <i data-lucide="log-out"></i>
+                </a>
+            </div>
+            <div class="theme-toggle" title="Toggle theme">
+                <button class="icon-btn" id="theme-btn" aria-label="Toggle theme">
+                    <i data-lucide="sun" id="theme-sun" style="display:none"></i>
+                    <i data-lucide="moon" id="theme-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="flash-zone">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">
+                        <i data-lucide="{{ 'check-circle-2' if category == 'success' else 'alert-triangle' }}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endwith %}
+        </div>
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+<div class="modal" id="confirm-modal" hidden>
+    <div class="modal-card modal-sm">
+        <div class="modal-head">
+            <i data-lucide="alert-triangle"></i>
+            <h3 id="confirm-title">Are you sure?</h3>
+            <button class="modal-close" data-close><i data-lucide="x" style="width:15px;height:15px"></i></button>
+        </div>
+        <div class="modal-body"><p id="confirm-message"></p></div>
+        <div class="modal-foot">
+            <button class="btn btn-ghost" data-close>Cancel</button>
+            <button class="btn btn-danger" id="confirm-ok">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/panel.js') }}"></script>
+{% block scripts %}{% endblock %}
+<script>
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('theme-btn');
+    const themeSun = document.getElementById('theme-sun');
+    const themeMoon = document.getElementById('theme-moon');
+
+    const savedTheme = localStorage.getItem('bytepanel-theme');
+    if (savedTheme === 'purple') {
+        html.classList.add('purple-theme');
+        themeSun.style.display = 'none';
+        themeMoon.style.display = 'inline';
+    }
+
+    if (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches && !savedTheme) {
+        html.classList.add('purple-theme');
+        themeSun.style.display = 'none';
+        themeMoon.style.display = 'inline';
+    }
+    
+    themeBtn.addEventListener('click', () => {
+        html.classList.toggle('purple-theme');
+        const isPurple = html.classList.contains('purple-theme');
+        localStorage.setItem('bytepanel-theme', isPurple ? 'purple' : 'normal');
+        themeSun.style.display = isPurple ? 'none' : 'inline';
+        themeMoon.style.display = isPurple ? 'inline' : 'none';
+    });
+</script>
+</body>
+</html>

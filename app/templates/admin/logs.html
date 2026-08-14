@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Audit Logs - BytePanel{% endblock %}
+{% block page_title %}Audit Logs{% endblock %}
+
+{% block content %}
+<div class="flex mb" style="justify-content:space-between; flex-wrap:wrap; gap:10px">
+    <div class="flex gap">
+        <input id="log-search" type="search" placeholder="Search user, action, message, IP..." value="{{ query }}" style="min-width:260px">
+        <select id="log-level" style="width:auto">
+            <option value="">All levels</option>
+            {% for lv in ["info", "warn", "error"] %}
+            <option value="{{ lv }}" {% if level == lv %}selected{% endif %}>{{ lv }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <form method="post" action="{{ url_for('admin.clear_logs') }}">
+        <button class="btn btn-ghost btn-sm" type="submit" data-confirm-title="Clear logs?" data-confirm="Delete all {{ total }} log entries? This cannot be undone." data-confirm-ok="Clear"><i data-lucide="trash-2"></i> Clear ({{ total }})</button>
+    </form>
+</div>
+
+<div class="card card-pad-sm">
+    <div class="table-card" style="padding:0">
+        <table>
+            <thead>
+                <tr><th>Time</th><th>Level</th><th>User</th><th>Action</th><th>Message</th><th>IP</th></tr>
+            </thead>
+            <tbody id="log-body">
+                {% for entry in entries %}
+                <tr class="log-row">
+                    <td class="mono muted nowrap">{{ entry.ts | replace("T", " ") }}</td>
+                    <td><span class="badge {{ 'error' if entry.level == 'error' else ('offline' if entry.level == 'warn' else 'running') }}">{{ entry.level }}</span></td>
+                    <td class="nowrap">{{ entry.username }}</td>
+                    <td class="mono nowrap">{{ entry.action }}</td>
+                    <td>{{ entry.message }}</td>
+                    <td class="mono muted">{{ entry.ip or "—" }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6"><div class="empty-state" style="padding:30px"><i data-lucide="scroll-text"></i><h3>No log entries yet</h3><p>Logins, user &amp; server changes, file operations and limit warnings will show up here.</p></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var search = document.getElementById("log-search");
+    var levelSel = document.getElementById("log-level");
+    var rows = Array.prototype.slice.call(document.querySelectorAll(".log-row"));
+
+    function apply() {
+        var q = search.value.toLowerCase().trim();
+        var lv = levelSel.value;
+        rows.forEach(function (r) {
+            var text = r.textContent.toLowerCase();
+            var rowLevel = (r.querySelector(".badge") || {}).textContent || "";
+            var show = (!q || text.indexOf(q) !== -1) && (!lv || rowLevel === lv);
+            r.style.display = show ? "" : "none";
+        });
+    }
+    search.addEventListener("input", apply);
+    levelSel.addEventListener("change", apply);
+})();
+</script>
+{% endblock %}

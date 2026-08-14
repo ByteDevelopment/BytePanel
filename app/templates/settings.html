@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ server.name }} - Settings - BytePanel{% endblock %}
+{% block page_title %}{{ server.name }} - Settings{% endblock %}
+
+{% block content %}
+{% include "_server_tabs.html" %}
+
+<div class="two-col">
+    <div class="card">
+        <h3><i data-lucide="settings"></i> Startup configuration</h3>
+        <form method="post" action="{{ url_for('servers.startup', server_id=server.id) }}">
+            <div class="form-row">
+                <label for="start_command">Start command</label>
+                <input type="text" id="start_command" name="start_command" value="{{ server.start_command }}" class="mono" required>
+                <div class="hint">Runs in the server folder. Env vars available: <code>SERVER_PORT</code>, <code>SERVER_NAME</code>. Applies next time the server is started.</div>
+            </div>
+            <div class="form-actions">
+                <button class="btn" type="submit"><i data-lucide="save"></i> Save startup command</button>
+            </div>
+        </form>
+        {% if template and template.name != 'Custom' %}
+        <div class="hint mt" style="margin-top:12px">
+            Template in use: <strong>{{ template.name }}</strong>.
+            {% if template.has_ram_placeholder %}
+            The memory limit ({{ server.memory_limit_mb or 'unlimited' }} MB) is injected into the command at startup.
+            {% endif %}
+        </div>
+        {% endif %}
+        {% if resolved_command != server.start_command %}
+        <div class="info-list" style="margin-top:10px">
+            <li><span class="k">Resolved command</span><span class="v mono" style="word-break:break-all">{{ resolved_command }}</span></li>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3><i data-lucide="info"></i> Server information</h3>
+        <ul class="info-list">
+            <li><span class="k">Status</span><span class="v"><span class="status-pill {{ server.status }}" style="padding:3px 10px"><span class="dot"></span>{{ server.status }}</span></span></li>
+            <li><span class="k">Game / Software</span><span class="v">{{ server.game }}</span></li>
+            <li><span class="k">Port</span><span class="v mono">{{ server.port }}</span></li>
+            <li><span class="k">Owner</span><span class="v">{{ server.owner.username }}</span></li>
+            <li><span class="k">Autostart with panel</span><span class="v">{{ "Enabled" if server.autostart else "Disabled" }}</span></li>
+            <li><span class="k">Install directory</span><span class="v mono">{{ server.install_dir }}</span></li>
+            <li><span class="k">Created</span><span class="v">{{ server.created_at.strftime("%Y-%m-%d %H:%M") }}</span></li>
+        </ul>
+        <div class="hint mt">Autostart, port, owner and game are managed by an administrator from the admin panel.</div>
+    </div>
+</div>
+{% endblock %}

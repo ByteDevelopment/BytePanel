@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ file_name }} - BytePanel{% endblock %}
+{% block page_title %}Editing {{ file_name }}{% endblock %}
+
+{% block content %}
+{% include "_server_tabs.html" %}
+
+<div class="card" style="padding:14px">
+    <form method="post" action="{{ url_for('files.save', server_id=server.id) }}">
+        <input type="hidden" name="path" value="{{ rel }}">
+        <div class="flex" style="justify-content:space-between; margin-bottom:12px">
+            <span class="mono muted">{{ rel }}</span>
+            <span class="muted" style="font-size:12px">UTF-8 text editor</span>
+        </div>
+        <textarea id="content" name="content" spellcheck="false" style="min-height:calc(100vh - 330px)">{{ content }}</textarea>
+        <div class="flex mt">
+            <button class="btn" type="submit"><i data-lucide="save"></i> Save file</button>
+            <a class="btn btn-ghost" href="{{ url_for('files.index', server_id=server.id, path=rel.rsplit('/', 1)[0] if '/' in rel else '') }}"><i data-lucide="arrow-left"></i> Back</a>
+            <span class="muted" id="save-hint" style="font-size:12px"></span>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    var ta = document.getElementById("content");
+    var hint = document.getElementById("save-hint");
+    var changed = false;
+    ta.addEventListener("input", function () {
+        if (!changed) { changed = true; hint.textContent = "Unsaved changes"; }
+    });
+    window.addEventListener("beforeunload", function (e) {
+        if (changed) { e.preventDefault(); e.returnValue = ""; }
+    });
+})();
+</script>
+{% endblock %}

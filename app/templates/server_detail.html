@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ server.name }} - Overview - BytePanel{% endblock %}
+{% block page_title %}{{ server.name }}{% endblock %}
+
+{% block content %}
+{% include "_server_tabs.html" %}
+
+<div class="server-head">
+    <div>
+        <h1>
+            <span class="status-pill {{ server.status }}" id="status-badge"><span class="dot"></span><span id="status-text">{{ server.status }}</span></span>
+        </h1>
+        <div class="sub">
+            {{ server.game }} &middot; port {{ server.port }}
+            {% if server.status == 'running' %}&middot; up <span id="uptime-val">—</span>{% endif %}
+        </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="flex flex-wrap gap">
+        <button class="btn btn-success btn-sm js-ctl" data-action="start" {% if server.status == 'running' %}disabled{% endif %}><i data-lucide="play"></i> Start</button>
+        <button class="btn btn-warning btn-sm js-ctl" data-action="restart"><i data-lucide="rotate-cw"></i> Restart</button>
+        <button class="btn btn-danger btn-sm js-ctl" data-action="stop" {% if server.status != 'running' %}disabled{% endif %}><i data-lucide="square"></i> Stop</button>
+        <button class="btn btn-sm btn-outline js-ctl" data-action="kill" {% if server.status != 'running' %}disabled{% endif %}><i data-lucide="skull"></i> Kill</button>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat">
+        <div class="stat-ic"><i data-lucide="activity"></i></div>
+        <div class="stat-val" id="stat-status">{{ 'Online' if server.status == 'running' else 'Offline' }}</div>
+        <div class="stat-label">Status</div>
+    </div>
+    <div class="stat">
+        <div class="stat-ic"><i data-lucide="users"></i></div>
+        <div class="stat-val" id="stat-players">—</div>
+        <div class="stat-label">Players</div>
+        <div class="stat-sub">live</div>
+    </div>
+    <div class="stat">
+        <div class="stat-ic"><i data-lucide="cpu"></i></div>
+        <div class="stat-val" id="stat-cpu">—</div>
+        <div class="stat-label">CPU</div>
+        <canvas id="spark-cpu"></canvas>
+    </div>
+    <div class="stat">
+        <div class="stat-ic"><i data-lucide="memory-stick"></i></div>
+        <div class="stat-val" id="stat-mem">—</div>
+        <div class="stat-label">Memory</div>
+        <div class="stat-sub" id="stat-mem-sub"></div>
+        <canvas id="spark-mem"></canvas>
+    </div>
+    <div class="stat">
+        <div class="stat-ic"><i data-lucide="hard-drive"></i></div>
+        <div class="stat-val" id="stat-disk">—</div>
+        <div class="stat-label">Disk</div>
+        <div class="stat-sub" id="stat-disk-sub"></div>
+        <canvas id="spark-disk"></canvas>
+    </div>
+    <div class="stat">
+        <div class="stat-ic"><i data-lucide="network"></i></div>
+        <div class="stat-val" id="stat-net">—</div>
+        <div class="stat-label">Network</div>
+        <div class="stat-sub" id="stat-net-sub"></div>
+        <canvas id="spark-net"></canvas>
+    </div>
+</div>
+
+<div class="graph-grid">
+    <div class="card graph-card">
+        <h4><i data-lucide="cpu"></i> CPU usage</h4>
+        <div class="g-val" id="g-cpu">—</div>
+        <canvas id="chart-cpu"></canvas>
+    </div>
+    <div class="card graph-card">
+        <h4><i data-lucide="memory-stick"></i> Memory usage</h4>
+        <div class="g-val" id="g-mem">—</div>
+        <canvas id="chart-mem"></canvas>
+    </div>
+    <div class="card graph-card">
+        <h4><i data-lucide="hard-drive"></i> Disk usage</h4>
+        <div class="g-val" id="g-disk">—</div>
+        <canvas id="chart-disk"></canvas>
+    </div>
+    <div class="card graph-card">
+        <h4><i data-lucide="network"></i> Network throughput</h4>
+        <div class="g-val" id="g-net">—</div>
+        <canvas id="chart-net"></canvas>
+    </div>
+</div>
+
+{% if server.has_limits %}
+<div class="card">
+    <h3><i data-lucide="gauge"></i> Resource limits</h3>
+    <div class="limit-list" id="limit-list">
+        {% if server.memory_limit_mb %}
+        <div class="limit-row">
+            <div class="limit-head"><span>Memory</span><span class="limit-val" id="lim-mem-val">—</span></div>
+            <div class="limit-bar" id="lim-mem-bar"><span></span></div>
+        </div>
+        {% endif %}
+        {% if server.cpu_limit_pct %}
+        <div class="limit-row">
+            <div class="limit-head"><span>CPU</span><span class="limit-val" id="lim-cpu-val">—</span></div>
+            <div class="limit-bar" id="lim-cpu-bar"><span></span></div>
+        </div>
+        {% endif %}
+        {% if server.disk_limit_mb %}
+        <div class="limit-row">
+            <div class="limit-head"><span>Storage</span><span class="limit-val" id="lim-disk-val">—</span></div>
+            <div class="limit-bar" id="lim-disk-bar"><span></span></div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="limit-meta" id="limit-meta">Servers that stay above their limits for a sustained period are stopped automatically (5 warnings first).</div>
+</div>
+{% endif %}
+
+<div class="two-col">
+    <div class="card">
+        <h3><i data-lucide="settings"></i> Startup</h3>
+        <div class="info-list">
+            <li><span class="k">Command</span><span class="v mono" style="word-break:break-all">{{ resolved_command if resolved_command != server.start_command else server.start_command }}</span></li>
+            <li><span class="k">Directory</span><span class="v mono">{{ server.install_dir }}</span></li>
+        </div>
+        <div class="flex mt">
+            <a class="btn btn-sm btn-ghost" href="{{ url_for('servers.settings', server_id=server.id) }}"><i data-lucide="pencil"></i> Edit startup</a>
+            <a class="btn btn-sm btn-ghost" href="{{ url_for('servers.console', server_id=server.id) }}"><i data-lucide="terminal"></i> Open console</a>
+        </div>
+    </div>
+    <div class="card">
+        <h3><i data-lucide="info"></i> Server information</h3>
+        <ul class="info-list">
+            <li><span class="k">Game / Software</span><span class="v">{{ server.game }}</span></li>
+            <li><span class="k">Port</span><span class="v mono">{{ server.port }}</span></li>
+            <li><span class="k">Owner</span><span class="v">{{ server.owner.username }}</span></li>
+            <li><span class="k">Autostart</span><span class="v">{{ "Enabled" if server.autostart else "Disabled" }}</span></li>
+            <li><span class="k">Created</span><span class="v">{{ server.created_at.strftime("%Y-%m-%d %H:%M") }}</span></li>
+            {% if server.description %}<li><span class="k">Description</span><span class="v">{{ server.description }}</span></li>{% endif %}
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.SERVER_ID = {{ server.id }};
+window.SERVER_MEM_LIMIT = {{ server.memory_limit_mb }};
+window.SERVER_CPU_LIMIT = {{ server.cpu_limit_pct }};
+window.SERVER_DISK_LIMIT = {{ server.disk_limit_mb }};
+</script>
+<script src="{{ url_for('static', filename='js/server.js') }}"></script>
+{% endblock %}

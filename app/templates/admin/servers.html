@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Servers - BytePanel{% endblock %}
+{% block page_title %}Manage Servers{% endblock %}
+
+{% block content %}
+<div class="flex mb" style="justify-content:space-between">
+    <a class="btn btn-sm" href="{{ url_for('admin.new_server') }}"><i data-lucide="plus"></i> New Server</a>
+</div>
+
+<div class="card card-pad-sm">
+    <div class="table-card" style="padding:0">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th><th>Game</th><th>Port</th><th>Owner</th><th>Status</th><th>Autostart</th><th class="right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for server in servers %}
+                <tr>
+                    <td class="file-name"><span class="f-ic file"><i data-lucide="server"></i></span> <a href="{{ url_for('servers.detail', server_id=server.id) }}">{{ server.name }}</a></td>
+                    <td>{{ server.game }}</td>
+                    <td class="mono">{{ server.port }}</td>
+                    <td>{{ server.owner.username }}</td>
+                    <td><span class="status-pill {{ server.status }}" style="padding:3px 10px"><span class="dot"></span>{{ server.status }}</span></td>
+                    <td>{{ "Yes" if server.autostart else "No" }}</td>
+                    <td class="right row-actions">
+                        <a class="btn btn-ghost btn-sm" href="{{ url_for('admin.edit_server', server_id=server.id) }}"><i data-lucide="pencil"></i></a>
+                        <button class="btn btn-danger btn-sm" data-confirm-title="Delete server?" data-confirm="Delete '{{ server.name }}'? {{ 'Its files will also be removed.' if server.autostart else '' }}" data-confirm-ok="Delete" data-delete-server="{{ server.id }}"><i data-lucide="trash-2"></i></button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7"><div class="empty-state" style="padding:26px"><i data-lucide="server"></i><h3>No servers yet</h3></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal" id="modal-delete-server" hidden>
+    <div class="modal-card modal-sm">
+        <div class="modal-head">
+            <i data-lucide="trash-2"></i><h3>Delete server</h3>
+            <button class="modal-close" data-close><i data-lucide="x" style="width:15px;height:15px"></i></button>
+        </div>
+        <div class="modal-body">
+            <p id="del-server-msg"></p>
+            <div class="checkbox-row mt" style="margin-top:12px">
+                <input type="checkbox" id="del-server-files">
+                <label for="del-server-files">Also delete all files on disk</label>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn btn-ghost" data-close>Cancel</button>
+            <button class="btn btn-danger" id="del-server-ok">Delete</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var delId = null;
+    document.querySelectorAll("[data-delete-server]").forEach(function (btn) {
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            delId = btn.dataset.deleteServer;
+            document.getElementById("del-server-msg").textContent =
+                'Delete server "' + btn.closest("tr").querySelector("a").textContent.trim() + '"?';
+            openModal("modal-delete-server");
+        });
+    });
+    document.getElementById("del-server-ok").addEventListener("click", function () {
+        var form = document.createElement("form");
+        form.method = "post";
+        form.action = "/admin/servers/" + delId + "/delete";
+        var inp = document.createElement("input");
+        inp.type = "hidden";
+        inp.name = "delete_files";
+        inp.value = document.getElementById("del-server-files").checked ? "on" : "";
+        form.appendChild(inp);
+        document.body.appendChild(form);
+        form.submit();
+    });
+})();
+</script>
+{% endblock %}

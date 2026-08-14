@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create Admin - BytePanel</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="{{ url_for('static', filename='js/lucide.min.js') }}" defer></script>
+</head>
+<body>
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="brand">
+            <div class="brand-logo"><span class="brand-mark">B</span></div>
+            <div class="brand-text">Byte<em>Panel</em></div>
+        </div>
+        <div class="auth-sub">First run — create the admin account</div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}" style="margin-bottom:16px">
+                    <i data-lucide="{{ 'check-circle-2' if category == 'success' else 'alert-triangle' }}"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="post">
+            <div class="form-row">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" autofocus required>
+            </div>
+            <div class="form-row">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-row">
+                <label for="confirm">Confirm password</label>
+                <input type="password" id="confirm" name="confirm" required>
+            </div>
+            <button class="btn" type="submit">
+                <i data-lucide="sparkles"></i> Create admin account
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

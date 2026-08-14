@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ server.name }} - Files - BytePanel{% endblock %}
+{% block page_title %}Files{% endblock %}
+
+{% block content %}
+{% include "_server_tabs.html" %}
+
+<div class="crumbs">
+    <a href="{{ url_for('files.index', server_id=server.id) }}"><i data-lucide="home" style="width:13px;height:13px;vertical-align:-2px"></i></a>
+    {% set parts = rel.split('/') if rel else [] %}
+    {% set ns = namespace(path='') %}
+    {% for part in parts %}
+        {% set ns.path = ns.path ~ '/' ~ part %}
+        <span class="sep">/</span>
+        <a href="{{ url_for('files.index', server_id=server.id, path=ns.path.lstrip('/')) }}">{{ part }}</a>
+    {% endfor %}
+</div>
+
+<div class="file-toolbar">
+    <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="search" id="file-search" placeholder="Search files and folders...">
+    </div>
+    <button class="btn btn-sm" id="btn-upload"><i data-lucide="upload"></i> Upload</button>
+    <button class="btn btn-sm btn-ghost" id="btn-new-file"><i data-lucide="file-plus"></i> New File</button>
+    <button class="btn btn-sm btn-ghost" id="btn-new-dir"><i data-lucide="folder-plus"></i> New Folder</button>
+</div>
+
+<div class="card card-pad-sm">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th style="width:110px">Size</th>
+                <th style="width:150px">Modified</th>
+                <th style="width:230px" class="right">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="file-tbody">
+            {% for item in items %}
+            <tr class="file-row" data-name="{{ item.name | lower }}">
+                <td class="file-name">
+                    {% if item.is_dir %}
+                    <span class="f-ic dir"><i data-lucide="folder"></i></span>
+                    <a href="{{ url_for('files.index', server_id=server.id, path=(rel + '/' if rel else '') ~ item.name) }}">{{ item.name }}/</a>
+                    {% else %}
+                    <span class="f-ic {{ 'dir' if item.is_dir else ('py' if item.name.endswith('.py') else ('jar' if item.name.endswith('.jar') else ('json' if item.name.endswith('.json') else ('sh' if item.name.endswith(('.sh', '.bat')) else 'file')))) }}">
+                        <i data-lucide="{{ 'folder' if item.is_dir else 'file-code' if item.name.endswith(('.py','.json','.sh','.bat','.cfg','.txt','.yml','.yaml')) else 'box' if item.name.endswith('.jar') else 'file' }}"></i>
+                    </span>
+                    <a href="{{ url_for('files.edit', server_id=server.id, path=(rel + '/' if rel else '') ~ item.name) }}">{{ item.name }}</a>
+                    {% endif %}
+                </td>
+                <td class="mono muted">
+                    {% if item.is_dir %}&mdash;
+                    {% elif item.size >= 1048576 %}{{ "%.2f MB" | format(item.size / 1048576) }}
+                    {% elif item.size >= 1024 %}{{ "%.1f KB" | format(item.size / 1024) }}
+                    {% else %}{{ item.size }} B{% endif %}
+                </td>
+                <td class="muted">{{ item.mtime.strftime("%Y-%m-%d %H:%M") }}</td>
+                <td class="right row-actions">
+                    {% if not item.is_dir %}
+                    <a class="btn btn-ghost btn-sm" href="{{ url_for('files.edit', server_id=server.id, path=(rel + '/' if rel else '') ~ item.name) }}"><i data-lucide="pencil"></i></a>
+                    {% endif %}
+                    <button class="btn btn-ghost btn-sm" data-action="rename" data-path="{{ (rel + '/' if rel else '') ~ item.name }}" data-name="{{ item.name }}"><i data-lucide="pen-line"></i></button>
+                    <button class="btn btn-danger btn-sm" data-action="delete" data-form="{{ url_for('files.delete', server_id=server.id) }}" data-path="{{ (rel + '/' if rel else '') ~ item.name }}" data-name="{{ item.name }}"><i data-lucide="trash-2"></i></button>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4"><div class="empty-state" style="padding:30px">
+                <i data-lucide="folder-open"></i>
+                <h3>This folder is empty</h3>
+                <p>Upload files or create a new file/folder to get started.</p>
+            </div></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal" id="modal-upload" hidden>
+    <div class="modal-card">
+        <div class="modal-head">
+            <i data-lucide="upload"></i><h3>Upload files</h3>
+            <button class="modal-close" data-close><i data-lucide="x" style="width:15px;height:15px"></i></button>
+        </div>
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('files.upload', server_id=server.id) }}">
+            <input type="hidden" name="path" value="{{ rel }}">
+            <div class="form-row">
+                <label for="upload-input">Choose files</label>
+                <input type="file" id="upload-input" name="files" multiple>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+                <button class="btn" type="submit"><i data-lucide="upload"></i> Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="modal-new" hidden>
+    <div class="modal-card">
+        <div class="modal-head">
+            <i data-lucide="file-plus"></i><h3 id="new-title">Create</h3>
+            <button class="modal-close" data-close><i data-lucide="x" style="width:15px;height:15px"></i></button>
+        </div>
+        <form method="post" action="{{ url_for('files.create', server_id=server.id) }}">
+            <input type="hidden" name="path" value="{{ rel }}">
+            <input type="hidden" name="kind" id="new-kind">
+            <div class="form-row">
+                <label for="new-name">Name</label>
+                <input type="text" id="new-name" name="name" required>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+                <button class="btn" type="submit">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="modal-rename" hidden>
+    <div class="modal-card">
+        <div class="modal-head">
+            <i data-lucide="pen-line"></i><h3>Rename</h3>
+            <button class="modal-close" data-close><i data-lucide="x" style="width:15px;height:15px"></i></button>
+        </div>
+        <form method="post" action="{{ url_for('files.rename', server_id=server.id) }}">
+            <input type="hidden" name="path" id="rename-path">
+            <div class="form-row">
+                <label for="rename-name">New name</label>
+                <input type="text" id="rename-name" name="new_name" required>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+                <button class="btn" type="submit">Rename</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/files.js') }}"></script>
+{% endblock %}

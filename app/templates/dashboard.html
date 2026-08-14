@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - BytePanel{% endblock %}
+{% block page_title %}My Servers{% endblock %}
+
+{% block content %}
+{% if servers %}
+<div class="srv-grid">
+    {% for server in servers %}
+    <div class="srv-card">
+        <div class="s-top">
+            <div class="s-ic"><i data-lucide="{{ 'box' if server.game | lower == 'custom' else 'gamepad-2' }}"></i></div>
+            <div style="flex:1; min-width:0">
+                <div class="s-name"><a href="{{ url_for('servers.detail', server_id=server.id) }}">{{ server.name }}</a></div>
+                <div class="s-game">{{ server.game }}</div>
+            </div>
+            <span class="status-pill {{ server.status }}"><span class="dot"></span>{{ server.status }}</span>
+        </div>
+        <div class="s-meta">
+            <span><i data-lucide="waypoints"></i>Port {{ server.port }}</span>
+            <span><i data-lucide="user"></i>{{ server.owner.username }}</span>
+        </div>
+        {% if server.description %}<div class="muted" style="margin-bottom:12px;font-size:12.5px">{{ server.description }}</div>{% endif %}
+        <div class="s-actions">
+            <a class="btn btn-sm" href="{{ url_for('servers.console', server_id=server.id) }}"><i data-lucide="terminal"></i> Console</a>
+            <a class="btn btn-sm btn-ghost" href="{{ url_for('files.index', server_id=server.id) }}"><i data-lucide="folder"></i> Files</a>
+            <a class="btn btn-sm btn-ghost" href="{{ url_for('servers.settings', server_id=server.id) }}"><i data-lucide="settings"></i> Settings</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <i data-lucide="server"></i>
+        <h3>No servers assigned</h3>
+        <p>An administrator has not assigned any servers to your account yet.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

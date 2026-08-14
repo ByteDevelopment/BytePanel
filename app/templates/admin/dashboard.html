@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Admin Overview - BytePanel{% endblock %}
+{% block page_title %}Admin Overview{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+    <div class="stat">
+        <div class="stat-ic"><i data-lucide="server"></i></div>
+        <div class="stat-val">{{ total }}</div>
+        <div class="stat-label">Servers</div>
+    </div>
+    <div class="stat">
+        <div class="stat-ic" style="background:rgba(34,197,94,.14); color:#4ade80"><i data-lucide="activity"></i></div>
+        <div class="stat-val" style="color:#4ade80">{{ running }}</div>
+        <div class="stat-label">Running</div>
+    </div>
+    <div class="stat">
+        <div class="stat-ic" style="background:rgba(34,211,238,.14); color:#22d3ee"><i data-lucide="users"></i></div>
+        <div class="stat-val">{{ users|length }}</div>
+        <div class="stat-label">Users</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin:0"><i data-lucide="palette"></i> Theme</h3>
+    <div class="form-row">
+        <select id="theme-selector" class="form-input">
+            <option value="default"{% if not current_user.is_admin or (current_user.theme is none or current_user.theme == 'default') %} selected{% endif %}>Default</option>
+            <option value="purple"{% if current_user.theme == 'purple' %} selected{% endif %}>Purple</option>
+            <option value="cyber"{% if current_user.theme == 'cyber' %} selected{% endif %}>Cyber</option>
+            <option value="ocean"{% if current_user.theme == 'ocean' %} selected{% endif %}>Ocean</option>
+            <option value="forest"{% if current_user.theme == 'forest' %} selected{% endif %}>Forest</option>
+        </select>
+    </div>
+</div>
+
+<div class="card">
+    <div class="flex" style="justify-content:space-between; margin-bottom:14px">
+        <h3 style="margin:0"><i data-lucide="server"></i> Servers</h3>
+        <a class="btn btn-sm" href="{{ url_for('admin.new_server') }}"><i data-lucide="plus"></i> New Server</a>
+    </div>
+    <div class="table-card" style="padding:0">
+        <table>
+            <thead>
+                <tr><th>Name</th><th>Game</th><th>Port</th><th>Owner</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for server in servers %}
+                <tr>
+                    <td class="file-name"><span class="f-ic file"><i data-lucide="server"></i></span> <a href="{{ url_for('servers.detail', server_id=server.id) }}">{{ server.name }}</a></td>
+                    <td>{{ server.game }}</td>
+                    <td class="mono">{{ server.port }}</td>
+                    <td>{{ server.owner.username }}</td>
+                    <td><span class="status-pill {{ server.status }}" style="padding:3px 10px"><span class="dot"></span>{{ server.status }}</span></td>
+                    <td class="right"><a class="btn btn-sm btn-ghost" href="{{ url_for('servers.console', server_id=server.id) }}"><i data-lucide="terminal"></i> Console</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6"><div class="empty-state" style="padding:26px"><i data-lucide="server"></i><h3>No servers yet</h3></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById("theme-selector").addEventListener("change", function () {
+        var theme = this.value;
+        if (theme === "default") {
+            document.body.classList.remove("purple-theme", "cyber-theme", "ocean-theme", "forest-theme");
+        } else {
+            document.body.classList.remove("purple-theme", "cyber-theme", "ocean-theme", "forest-theme");
+            document.body.classList.add(theme + "-theme");
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var savedTheme = localStorage.getItem("bytepanel-theme");
+        if (savedTheme && savedTheme !== "default") {
+            document.body.classList.remove("purple-theme", "cyber-theme", "ocean-theme", "forest-theme");
+            document.body.classList.add(savedTheme + "-theme");
+            document.getElementById("theme-selector").value = savedTheme;
+        }
+    });
+</script>
+
+<script>
+(function () {
+    var delId = null;
+    document.querySelectorAll("[data-delete-server]").forEach(function (btn) {
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            delId = btn.dataset.deleteServer;
+            document.getElementById("del-server-msg").textContent =
+                'Delete server "' + btn.closest("tr").querySelector("a").textContent.trim() + '"?';
+            openModal("modal-delete-server");
+        });
+    });
+    document.getElementById("del-server-ok").addEventListener("click", function () {
+        var form = document.createElement("form");
+        form.method = "post";
+        form.action = "/admin/servers/" + delId + "/delete";
+        var inp = document.createElement("input");
+        inp.type = "hidden";
+        inp.name = "delete_files";
+        inp.value = document.getElementById("del-server-files").checked ? "on" : "";
+        form.appendChild(inp);
+        document.body.appendChild(form);
+        form.submit();
+    });
+</script>
+{% endblock %}

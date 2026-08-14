@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ server.name }} - Console - BytePanel{% endblock %}
+{% block page_title %}{{ server.name }}{% endblock %}
+
+{% block content %}
+{% include "_server_tabs.html" %}
+
+<div class="terminal">
+    <div class="term-head">
+        <span class="term-dots"><i></i><i></i><i></i></span>
+        <span class="term-title">{{ server.name }} &mdash; console</span>
+        <span class="status-pill {{ server.status }}" id="status-badge" style="padding:4px 12px"><span class="dot"></span><span id="status-text">{{ server.status }}</span></span>
+        <button class="btn btn-sm btn-ghost" id="btn-clear"><i data-lucide="eraser"></i> Clear</button>
+    </div>
+    <div class="term-body" id="console">
+        <div class="line"><span class="t">[&nbsp;]</span>Connecting to console...</div>
+    </div>
+    <div class="term-input">
+        <span class="prompt">&gt;</span>
+        <input type="text" id="cmd-input" placeholder="Type a command and press Enter" autocomplete="off" spellcheck="false">
+        <button class="btn btn-sm" id="btn-send"><i data-lucide="send"></i> Send</button>
+    </div>
+</div>
+
+<div class="card card-pad-sm mt">
+    <div class="flex flex-wrap gap">
+        <button class="btn btn-success btn-sm js-ctl" data-action="start" {% if server.status == 'running' %}disabled{% endif %}><i data-lucide="play"></i> Start</button>
+        <button class="btn btn-warning btn-sm js-ctl" data-action="restart"><i data-lucide="rotate-cw"></i> Restart</button>
+        <button class="btn btn-danger btn-sm js-ctl" data-action="stop" {% if server.status != 'running' %}disabled{% endif %}><i data-lucide="square"></i> Stop</button>
+        <button class="btn btn-sm btn-outline js-ctl" data-action="kill" {% if server.status != 'running' %}disabled{% endif %}><i data-lucide="skull"></i> Kill</button>
+        <span class="muted" style="font-size:12.5px; margin-left:auto">Autostart: {{ "on" if server.autostart else "off" }} &middot; port {{ server.port }}</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.SERVER_ID = {{ server.id }};
+</script>
+<script src="{{ url_for('static', filename='js/console.js') }}"></script>
+{% endblock %}

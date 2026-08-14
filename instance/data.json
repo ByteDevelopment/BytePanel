@@ -1,0 +1,174 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password_hash": "scrypt:32768:8:1$ML6KvQclLaCZdTVp$5a7198eb8e1a797bfdc4f4ecb1e029837f0dee0eda47c25a05f9048917f94eb04378f70f5488f896cb0e294e4d120b16222e25ded104b8a0798d135beea99498",
+      "is_admin": true,
+      "created_at": "2026-08-13T16:00:00",
+      "theme": "default"
+    }
+  ],
+  "servers": [
+    {
+      "id": 1,
+      "name": "Python",
+      "game": "Python",
+      "description": "",
+      "install_dir": "C:\\Users\\Kian\\Desktop\\BytePanel\\servers\\python",
+      "start_command": "pip install -r requirements.txt && python main.py",
+      "port": 8090,
+      "status": "offline",
+      "pid": 0,
+      "autostart": false,
+      "owner_id": 1,
+      "created_at": "2026-08-13T15:23:39",
+      "memory_limit_mb": 0,
+      "cpu_limit_pct": 0,
+      "disk_limit_mb": 0,
+      "template": "python"
+    },
+    {
+      "id": 3,
+      "name": "Parrot",
+      "game": "Custom",
+      "description": "",
+      "install_dir": "C:\\Users\\Kian\\Desktop\\BytePanel\\servers\\parrot",
+      "start_command": "curl parrot.live",
+      "port": 9090,
+      "status": "offline",
+      "pid": 0,
+      "autostart": false,
+      "owner_id": 1,
+      "created_at": "2026-08-14T11:38:52.271113",
+      "memory_limit_mb": 1,
+      "cpu_limit_pct": 1,
+      "disk_limit_mb": 1,
+      "template": "custom"
+    }
+  ],
+  "logs": [
+    {
+      "id": 1,
+      "ts": "2026-08-13T15:47:13",
+      "level": "info",
+      "action": "user.create",
+      "message": "admin account demo registered",
+      "username": "demo",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 2,
+      "ts": "2026-08-13T15:47:13",
+      "level": "info",
+      "action": "server.create",
+      "message": "server \"Minecraft Server\" created on port 25565 (template: minecraft)",
+      "username": "demo",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 3,
+      "ts": "2026-08-13T16:16:52",
+      "level": "info",
+      "action": "auth.login",
+      "message": "admin logged in",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 4,
+      "ts": "2026-08-14T11:31:40",
+      "level": "info",
+      "action": "auth.login",
+      "message": "admin logged in",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 5,
+      "ts": "2026-08-14T11:38:06",
+      "level": "info",
+      "action": "server.start",
+      "message": "server \"Python\" started",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 6,
+      "ts": "2026-08-14T11:38:52",
+      "level": "info",
+      "action": "server.create",
+      "message": "server \"Parrot\" created on port 9090 (template: custom)",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 7,
+      "ts": "2026-08-14T11:38:55",
+      "level": "info",
+      "action": "server.start",
+      "message": "server \"Parrot\" started",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 8,
+      "ts": "2026-08-14T11:39:15",
+      "level": "info",
+      "action": "server.start",
+      "message": "server \"Parrot\" started",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 9,
+      "ts": "2026-08-14T11:39:21",
+      "level": "info",
+      "action": "server.command",
+      "message": "command sent to \"Parrot\": ez?",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 10,
+      "ts": "2026-08-14T11:39:24",
+      "level": "info",
+      "action": "server.command",
+      "message": "command sent to \"Parrot\": sigma boy",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 11,
+      "ts": "2026-08-14T11:45:15",
+      "level": "info",
+      "action": "auth.logout",
+      "message": "admin logged out",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 12,
+      "ts": "2026-08-14T11:45:58",
+      "level": "info",
+      "action": "auth.login",
+      "message": "admin logged in",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": 13,
+      "ts": "2026-08-14T11:46:06",
+      "level": "info",
+      "action": "auth.logout",
+      "message": "admin logged out",
+      "username": "admin",
+      "ip": "127.0.0.1"
+    }
+  ],
+  "_next": {
+    "user": 2,
+    "server": 4,
+    "log": 14
+  }
+}

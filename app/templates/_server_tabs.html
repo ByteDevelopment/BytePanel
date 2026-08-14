@@ -1,0 +1,14 @@
+<nav class="tabs">
+    <a href="{{ url_for('servers.detail', server_id=server.id) }}" class="{{ 'active' if active == 'overview' }}">
+        <i data-lucide="layout-dashboard"></i> Overview
+    </a>
+    <a href="{{ url_for('servers.console', server_id=server.id) }}" class="{{ 'active' if active == 'console' }}">
+        <i data-lucide="terminal"></i> Console
+    </a>
+    <a href="{{ url_for('files.index', server_id=server.id) }}" class="{{ 'active' if active == 'files' }}">
+        <i data-lucide="folder"></i> Files
+    </a>
+    <a href="{{ url_for('servers.settings', server_id=server.id) }}" class="{{ 'active' if active == 'settings' }}">
+        <i data-lucide="settings"></i> Settings
+    </a>
+</nav>

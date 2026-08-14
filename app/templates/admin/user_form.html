@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit User" if user else "New User" }} - BytePanel{% endblock %}
+{% block page_title %}{{ "Edit User" if user else "New User" }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:520px">
+    <form method="post">
+        <div class="form-row">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" value="{{ user.username if user else '' }}" required>
+        </div>
+        <div class="form-row">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" {% if not user %}required{% endif %} placeholder="{{ 'Leave blank to keep current password' if user else '' }}">
+        </div>
+        <div class="checkbox-row">
+            <input type="checkbox" id="is_admin" name="is_admin" {% if user and user.is_admin %}checked{% endif %}>
+            <label for="is_admin">Admin privileges</label>
+        </div>
+        <div class="form-actions">
+            <button class="btn" type="submit"><i data-lucide="save"></i> {{ "Save changes" if user else "Create user" }}</button>
+            <a class="btn btn-ghost" href="{{ url_for('admin.users') }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
