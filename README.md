@@ -10,7 +10,7 @@ A self-hosted, lightweight **game-server management panel** built with Flask. La
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey)
 
 ---
-
+#Warning: Default Admin usernaem and password is admin admin
 ## Features
 
 ### Server management
