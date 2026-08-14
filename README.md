@@ -1,6 +1,9 @@
 # BytePanel
 
-A self-hosted, lightweight **game-server management panel** built with Flask. Launch, monitor and control game servers straight from a slick dark-glass web UI — with live graphs, a colorized console, a file manager and per-server resource limits.
+A self-hosted, lightweight **game-server management panel** built with Flask. Launch, monitor and control game servers straight from a slick dark-glass web UI — with live graphs, a colorized console, a file manager and per-server resource limits. 
+
+Warning: Default Admin usernaem and password is admin admin
+
 
 > Designed for small game hosts, home labs and anyone running Minecraft, Valheim, Terraria, Python bots or any custom process. All data is stored in a simple JSON file — no database server required.
 
@@ -10,7 +13,6 @@ A self-hosted, lightweight **game-server management panel** built with Flask. La
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey)
 
 ---
-#Warning: Default Admin usernaem and password is admin admin
 ## Features
 
 ### Server management
